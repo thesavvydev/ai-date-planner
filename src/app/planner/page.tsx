@@ -287,21 +287,21 @@ export default function Page() {
     },
   ];
 
-  // const handleQuestionnaireUpdate = (questionId, value) => {
-  //   if (questionId === "vibes") {
-  //     setQuestionnaireData((prev) => ({
-  //       ...prev,
-  //       vibes: prev.vibes.includes(value)
-  //         ? prev.vibes.filter((v) => v !== value)
-  //         : [...prev.vibes, value],
-  //     }));
-  //   } else {
-  //     setQuestionnaireData((prev) => ({
-  //       ...prev,
-  //       [questionId]: value,
-  //     }));
-  //   }
-  // };
+  const handleQuestionnaireUpdate = (questionId, value) => {
+    if (questionId === "vibes") {
+      setQuestionnaireData((prev) => ({
+        ...prev,
+        vibes: prev.vibes.includes(value)
+          ? prev.vibes.filter((v) => v !== value)
+          : [...prev.vibes, value],
+      }));
+    } else {
+      setQuestionnaireData((prev) => ({
+        ...prev,
+        [questionId]: value,
+      }));
+    }
+  };
 
   const nextStep = () => {
     if (currentStep < questions.length - 1) {
