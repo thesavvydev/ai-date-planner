@@ -1,39 +1,61 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
-import { useState } from "react";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
+import z from "zod";
+import { dateIdeaSchema } from "./api/chat/route";
 
 export default function Chat() {
-  const [input, setInput] = useState("");
-  const { messages, sendMessage } = useChat();
-  return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      {messages.map((message) => (
-        <div key={message.id} className="whitespace-pre-wrap">
-          {message.role === "user" ? "User: " : "AI: "}
-          {message.parts.map((part, i) => {
-            switch (part.type) {
-              case "text":
-                return <div key={`${message.id}-${i}`}>{part.text}</div>;
-            }
-          })}
-        </div>
-      ))}
+  const { object, submit, isLoading } = useObject({
+    api: "/api/chat",
+    schema: z.array(dateIdeaSchema),
+  });
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          sendMessage({ text: input });
-          setInput("");
-        }}
-      >
-        <input
-          className="fixed dark:bg-zinc-900 bottom-0 w-full max-w-md p-2 mb-8 border border-zinc-300 dark:border-zinc-800 rounded shadow-xl"
-          value={input}
-          placeholder="Say something..."
-          onChange={(e) => setInput(e.currentTarget.value)}
-        />
-      </form>
+  return (
+    <div className="relative h-screen max-w-xl mx-auto py-20">
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 grid place-items-center">
+          Loading...
+        </div>
+      )}
+      <div className="grid justify-center gap-2">
+        {object?.flatMap((dateIdea) =>
+          dateIdea ? (
+            <div
+              className="bg-slate-700 p-4 text-gray-200 w-full rounded-2xl"
+              key={dateIdea.id}
+            >
+              <div className="flex items-center justify-between">
+                <strong>{dateIdea.name}</strong>
+                <p className="text-xs">{dateIdea.category}</p>
+              </div>
+              <p>Location: {dateIdea.location}</p>
+              <p>Cuisine: {dateIdea.cuisine}</p>
+              <p>Price: {dateIdea.price}</p>
+              <p>Map: {dateIdea.link_to_map}</p>
+            </div>
+          ) : (
+            []
+          )
+        )}
+      </div>
+      <div className="h-32" />
+      <div className="fixed bottom-10 w-full">
+        <form
+          className="bg-white rounded-lg shadow-md max-w-xl"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            submit({ prompt: formData.get("prompt") as string });
+            e.currentTarget.reset();
+          }}
+        >
+          <input
+            className="text-gray-800 placeholder-gray-500 w-full p-4"
+            name="prompt"
+            placeholder="Say something..."
+          />
+        </form>
+      </div>
     </div>
   );
 }
