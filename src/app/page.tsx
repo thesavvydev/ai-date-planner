@@ -1,8 +1,8 @@
 "use client";
 
+import { dateIdeaSchema } from "@/schema/dateIdea";
 import { experimental_useObject as useObject } from "@ai-sdk/react";
 import z from "zod";
-import { dateIdeaSchema } from "./api/chat/route";
 
 export default function Chat() {
   const { object, submit, isLoading } = useObject({
