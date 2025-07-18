@@ -24,14 +24,7 @@ export default function Chat() {
               className="bg-slate-700 p-4 text-gray-200 w-full rounded-2xl"
               key={dateIdea.id}
             >
-              <div className="flex items-center justify-between">
-                <strong>{dateIdea.name}</strong>
-                <p className="text-xs">{dateIdea.category}</p>
-              </div>
-              <p>Location: {dateIdea.location}</p>
-              <p>Cuisine: {dateIdea.cuisine}</p>
-              <p>Price: {dateIdea.price}</p>
-              <p>Map: {dateIdea.link_to_map}</p>
+              {JSON.stringify(dateIdea)}
             </div>
           ) : (
             []
