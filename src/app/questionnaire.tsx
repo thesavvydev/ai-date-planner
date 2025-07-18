@@ -152,7 +152,7 @@ const questionsData = [
 
 export const Questionnaire = ({ onComplete, onBack }) => {
   const [currentQuestion, setCurrentQuestion] = useState<number>(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [direction, setDirection] = useState<number>(0);
 
   const handleAnswer = (answer) => {
