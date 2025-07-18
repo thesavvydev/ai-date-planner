@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,11 +28,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50`}
       >
         {/* Header */}
-        <header className="bg-white backdrop-blur-md shadow-sm sticky top-0 z-50">
-          <div className="max-w-6xl mx-auto px-4 py-4">
+        <header className="bg-white/40 backdrop-blur-md shadow-sm sticky top-0 z-50">
+          <div className="md:max-w-6xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center gap-2">
                 <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center">
@@ -43,15 +44,14 @@ export default function RootLayout({
               </Link>
 
               <div className="flex items-center gap-4">
-                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <Bell className="w-5 h-5 text-gray-600" />
-                </button>
-                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                  <Settings className="w-5 h-5 text-gray-600" />
-                </button>
-                <button className="w-8 h-8 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </button>
+                <Link href="/settings">
+                  <Button
+                    className="bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center"
+                    size="icon"
+                  >
+                    <User className="size-4 text-white" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

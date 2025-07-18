@@ -1,5 +1,10 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DATE_CATEGORIES, DateIdea, dateIdeaSchema } from "@/schema/dateIdea";
+import { experimental_useObject } from "@ai-sdk/react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,14 +15,18 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
-function DateCard({ idea }) {
+import z from "zod";
+
+const categories = Object.values(DATE_CATEGORIES);
+
+function DateCard({ idea }: { idea: DateIdea }) {
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-4xl">{idea.image}</div>
+          <div className="text-4xl">{DATE_CATEGORIES[idea.category]?.icon}</div>
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-500 fill-current" />
             <span className="text-sm font-medium">{idea.rating}</span>
@@ -38,9 +47,9 @@ function DateCard({ idea }) {
           </div>
           <div className="flex items-center justify-between">
             <span className="font-medium text-pink-600">{idea.cost}</span>
-            <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs">
+            <Badge className=" bg-pink-100 text-pink-700" variant="outline">
               {idea.category}
-            </span>
+            </Badge>
           </div>
         </div>
 
@@ -53,7 +62,6 @@ function DateCard({ idea }) {
 }
 
 export default function Page() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -71,74 +79,17 @@ export default function Page() {
   });
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const dateIdeas = [
-    {
-      id: 1,
-      title: "Rooftop Sunset Dinner",
-      category: "romantic",
-      location: "Downtown",
-      duration: "2-3 hours",
-      cost: "$$$",
-      rating: 4.8,
-      image: "🌅",
-      description: "Intimate dinner with city views",
-    },
-    {
-      id: 2,
-      title: "Art Museum & Coffee",
-      category: "culture",
-      location: "Arts District",
-      duration: "3-4 hours",
-      cost: "$$",
-      rating: 4.6,
-      image: "🎨",
-      description: "Explore art then cozy café chat",
-    },
-    {
-      id: 3,
-      title: "Hiking Trail Adventure",
-      category: "outdoor",
-      location: "Nature Park",
-      duration: "4-5 hours",
-      cost: "$",
-      rating: 4.7,
-      image: "🥾",
-      description: "Scenic trail with picnic lunch",
-    },
-    {
-      id: 4,
-      title: "Wine Tasting Evening",
-      category: "romantic",
-      location: "Wine Bar",
-      duration: "2-3 hours",
-      cost: "$$$",
-      rating: 4.9,
-      image: "🍷",
-      description: "Curated wines with cheese pairings",
-    },
-    {
-      id: 5,
-      title: "Cooking Class Together",
-      category: "activity",
-      location: "Culinary Studio",
-      duration: "3 hours",
-      cost: "$$",
-      rating: 4.5,
-      image: "👨‍🍳",
-      description: "Learn to cook a new cuisine",
-    },
-    {
-      id: 6,
-      title: "Beach Bonfire & Stars",
-      category: "outdoor",
-      location: "Coastal Beach",
-      duration: "3-4 hours",
-      cost: "$",
-      rating: 4.8,
-      image: "🔥",
-      description: "Bonfire, s'mores, stargazing",
-    },
-  ];
+  const {
+    object: dateIdeas = [],
+    error,
+    submit,
+    isLoading,
+  } = experimental_useObject({
+    api: "/api/chat",
+    schema: z.array(dateIdeaSchema),
+  });
+
+  console.log({ dateIdeas, error, isLoading });
 
   const questions = [
     {
@@ -335,25 +286,15 @@ export default function Page() {
     console.log("Questionnaire completed:", questionnaireData);
   };
 
-  const filteredIdeas = dateIdeas.filter((idea) => {
-    const matchesSearch =
-      idea.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      idea.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      filterCategory === "all" || idea.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categories = [
-    { id: "all", name: "All", icon: "🌟" },
-    { id: "romantic", name: "Romantic", icon: "💕" },
-    { id: "outdoor", name: "Outdoor", icon: "🌲" },
-    { id: "culture", name: "Culture", icon: "🎭" },
-    { id: "activity", name: "Activity", icon: "🎯" },
-  ];
+  const handleSubmitSearch = useCallback((e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const prompt = formData.get("prompt") as string;
+    submit({ prompt });
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+    <>
       {/* Questionnaire Modal */}
       {showQuestionnaire && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -456,20 +397,29 @@ export default function Page() {
 
           {/* Search and Filter */}
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
+            <form
+              className="relative flex flex-row items-center grow gap-2"
+              onSubmit={handleSubmitSearch}
+            >
+              <Search className="text-gray-400 size-5" />
+              <Input
+                className="bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent placeholder:text-gray-400"
+                name="prompt"
+                placeholder="Enter a location for date ideas..."
                 type="text"
-                placeholder="Search date ideas..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent placeholder:text-gray-400"
               />
-            </div>
+              <Button
+                disabled={isLoading}
+                className=" hidden lg:inline"
+                size="sm"
+              >
+                Search
+              </Button>
+            </form>
 
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="flex gap-2 overflow-x-auto pb-4 md:py-0">
               {categories.map((category) => (
-                <button
+                <Button
                   key={category.id}
                   onClick={() => setFilterCategory(category.id)}
                   className={`flex items-center gap-2 px-4 py-3 rounded-xl whitespace-nowrap transition-all ${
@@ -480,19 +430,32 @@ export default function Page() {
                 >
                   <span>{category.icon}</span>
                   <span className="font-medium">{category.name}</span>
-                </button>
+                </Button>
               ))}
             </div>
           </div>
 
           {/* Date Ideas Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredIdeas.map((idea) => (
-              <DateCard key={idea.id} idea={idea} />
-            ))}
+            {dateIdeas.flatMap((idea) => {
+              if (!idea) return [];
+              if (filterCategory !== "all" && idea.category !== filterCategory)
+                return [];
+              return <DateCard key={idea.id} idea={idea as DateIdea} />;
+            })}
+            {isLoading && (
+              <div className="fixed bg-black/60 backdrop-blur-xs z-50 inset-0 grid place-items-center">
+                <div className="grid gap-6 justify-center items-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-8 border-b-4 border-b-pink-100 border-pink-500 mx-auto" />
+                  <p className="text-2xl font-bold bg-gradient-to-r from-pink-200 via-pink-100 to-red-100 bg-clip-text text-transparent">
+                    Loading date ideas...
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
-    </div>
+    </>
   );
 }
