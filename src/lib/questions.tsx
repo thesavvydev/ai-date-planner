@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Beef, Bone, CarrotIcon, CheckCircle, Droplet, Fish, Flower2,  Leaf, MilkOff, Nut, Salad, Scale, Sparkles, Wheat } from "lucide-react";
+import { Beef, Bone, CarrotIcon, CheckCircle, Droplet, Fish, Flower2, Leaf, MilkOff, Nut, Salad, Scale, Wheat } from "lucide-react";
 export const QUESTIONS = [
     {
       id: "location",

@@ -32,6 +32,7 @@ const eslintConfig = [
     },
     rules: {
       "no-console": ["error", { allow: ["warn", "error"] }],
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
 ];

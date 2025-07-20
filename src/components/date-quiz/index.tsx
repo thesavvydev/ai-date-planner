@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { cn } from "@/lib/utils";
 import { QUESTIONS } from "@/lib/questions";
-import { ArrowLeft, ArrowRight, Beef, Bone, CarrotIcon, CheckCircle, Droplet, Fish, Flower2, Leaf, MilkOff, Nut, Salad, Scale, Sparkles, Wheat } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import { createContext, useCallback, useContext, useState } from "react";
 
 
@@ -275,8 +275,6 @@ function QuestionnaireProvider({ children, onFinish, close }: { children: React.
   }, [currentStep]);
 
   const finishQuestionnaire = useCallback(() => {
-    // Handle questionnaire completion
-    console.log('Questionnaire completed:', questionnaireData);
     setShowQuestionnaire(false);
     onFinish(questionnaireData);
     close();
