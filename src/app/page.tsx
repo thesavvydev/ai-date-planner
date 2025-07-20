@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useCallback, useState } from "react";
 import z from "zod";
-
+import { Questionnaire } from "@/components/date-quiz";
 const categories = Object.values(DATE_CATEGORIES);
 
 function DateCard({ idea }: { idea: DateIdea }) {
@@ -29,10 +29,8 @@ function DateCard({ idea }: { idea: DateIdea }) {
             <span className="text-sm font-medium">{idea.rating}</span>
           </div>
         </div>
-
         <h3 className="text-xl font-bold text-gray-800 mb-2">{idea.title}</h3>
         <p className="text-gray-600 text-sm mb-4">{idea.description}</p>
-
         <div className="space-y-2 text-sm text-gray-500">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4" />
@@ -49,13 +47,37 @@ function DateCard({ idea }: { idea: DateIdea }) {
             </Badge>
           </div>
         </div>
-
         <button className="w-full mt-4 bg-gradient-to-r from-pink-500 to-red-500 text-white py-3 rounded-xl font-medium hover:from-pink-600 hover:to-red-600 transition-all">
           Plan This Date
         </button>
       </div>
     </div>
   );
+}
+
+function PageHero({ submit }: { submit: (data: any) => void }) {
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+
+  return <>
+    {showQuestionnaire && <Questionnaire close={() => setShowQuestionnaire(false)} onFinish={(data) => {
+
+      submit({ questionData: data })
+    }} />}
+
+    <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-3xl p-8 text-white text-center">
+      <h2 className="text-3xl font-bold mb-4">Find Your Perfect Date</h2>
+      <p className="text-xl mb-6 opacity-90">
+        Answer a few questions and get personalized date suggestions
+      </p>
+      <button onClick={() => setShowQuestionnaire(true)} className="bg-white text-pink-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
+        <span className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5" />
+          Start Date Quiz
+          <ChevronRight className="w-5 h-5" />
+        </span>
+      </button>
+    </div>
+  </>
 }
 
 export default function Page() {
@@ -66,8 +88,11 @@ export default function Page() {
     submit,
     isLoading,
   } = experimental_useObject({
-    api: "/api/chat",
+    api: "/api/advanced-date-suggestions",
     schema: z.array(dateIdeaSchema),
+    onError: (error) => {
+      console.error(error);
+    }
   });
 
   const handleSubmitSearch = useCallback(
@@ -83,23 +108,7 @@ export default function Page() {
   return (
     <main className="max-w-6xl mx-auto px-4 pb-8 py-4">
       <div className="space-y-6">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-3xl p-8 text-white text-center">
-          <h2 className="text-3xl font-bold mb-4">Find Your Perfect Date</h2>
-          <p className="text-xl mb-6 opacity-90">
-            Answer a few questions and get personalized date suggestions
-          </p>
-          <button
-            // onClick={startQuestionnaire}
-            className="bg-white text-pink-600 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg"
-          >
-            <span className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              Start Date Quiz
-              <ChevronRight className="w-5 h-5" />
-            </span>
-          </button>
-        </div>
+        <PageHero submit={submit} />
 
         {/* Search and Filter */}
         <div className="flex flex-col md:flex-row gap-4">
@@ -128,11 +137,10 @@ export default function Page() {
               <Button
                 key={category.id}
                 onClick={() => setFilterCategory(category.id)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl whitespace-nowrap transition-all ${
-                  filterCategory === category.id
-                    ? "bg-pink-500 text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl whitespace-nowrap transition-all ${filterCategory === category.id
+                  ? "bg-pink-500 text-white shadow-lg"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
               >
                 <span>{category.icon}</span>
                 <span className="font-medium">{category.name}</span>
