@@ -12,7 +12,7 @@ import { DATE_CATEGORIES, DateIdea, dateIdeaSchema } from "@/schema/dateIdea";
 import { experimental_useObject } from "@ai-sdk/react";
 import { QUESTIONS_DICTIONARY } from "@/lib/questions";
 import { cn } from "@/lib/utils";
-import { Star, MapPin, Clock, Share2, ChevronLeft, ChevronRight, X, Bookmark } from "lucide-react";
+import { Star, MapPin, Clock, Share2, ChevronLeft, ChevronRight, X, Bookmark, RotateCcw } from "lucide-react";
 import z from "zod";
 import React from "react"; // Added missing import
 import { clsx } from "clsx"; // Added missing import
@@ -31,7 +31,7 @@ function ProgressBar({ current, total, onStepClick, canGoToStep }: {
   canGoToStep: (idx: number) => boolean;
 }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-6" aria-label="Progress" role="list">
+    <div className="flex items-center justify-center gap-2" aria-label="Progress" role="list">
       {Array.from({ length: total }).map((_, i) => {
         const isActive = i === current;
         const isClickable = canGoToStep(i);
@@ -95,18 +95,14 @@ function OptionCard({ selected, icon, label, onClick }: { selected: boolean; ico
   );
 }
 
-function InfluencerDateStory({ idea, onPlan, onShare, onSave, onPrev, onNext, showPrev, showNext }: {
+function InfluencerDateStory({ idea, onPlan, onShare, onSave }: {
   idea: DateIdea,
   onPlan: () => void,
   onShare: () => void,
   onSave: () => void,
-  onPrev: () => void,
-  onNext: () => void,
-  showPrev: boolean,
-  showNext: boolean,
 }) {
   return (
-    <section className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-pink-200/60 overflow-hidden flex flex-col items-center justify-center min-h-[340px] max-w-md w-full mx-auto p-4 sm:p-8" aria-label={`Date idea: ${idea.title}`}> 
+    <section className="flex flex-col items-center justify-center w-full px-4 py-8 sm:py-12" aria-label={`Date idea: ${idea.title}`}> 
       <div className="flex flex-col gap-3 items-center w-full">
         <span className="text-5xl mb-1" aria-hidden="true">{DATE_CATEGORIES[idea.category]?.icon}</span>
         <h2 className="text-2xl font-extrabold text-gray-900 mb-1 text-center break-words">{idea.title}</h2>
@@ -131,27 +127,6 @@ function InfluencerDateStory({ idea, onPlan, onShare, onSave, onPrev, onNext, sh
             <Bookmark className="w-5 h-5 mr-1" aria-hidden="true" /> <span className="sr-only">Save</span>
           </Button>
         </div>
-      </div>
-      {/* Footer navigation for mobile accessibility */}
-      <div className="flex w-full justify-between items-center mt-6 gap-4">
-        <Button
-          variant="ghost"
-          className="rounded-full p-2 bg-white/80 hover:bg-pink-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
-          onClick={onPrev}
-          disabled={!showPrev}
-          aria-label="Previous date idea"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </Button>
-        <Button
-          variant="ghost"
-          className="rounded-full p-2 bg-white/80 hover:bg-pink-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
-          onClick={onNext}
-          disabled={!showNext}
-          aria-label="Next date idea"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </Button>
       </div>
     </section>
   );
@@ -321,209 +296,164 @@ export default function InfluencerPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-yellow-50 to-white flex flex-col">
-      <main className="flex-1 w-full max-w-2xl mx-auto px-2 sm:px-6 py-8 flex flex-col items-center">
-        <ProgressBar
-          current={step}
-          total={totalSteps}
-          onStepClick={setStep}
-          canGoToStep={canGoToStep}
-        />
+    <div className="relative min-h-screen bg-gradient-to-br from-pink-100 via-yellow-50 to-white">
+      {/* Sticky header: progress bar for steps, carousel nav for results */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 border-b border-pink-100 flex items-center justify-center h-16">
+        <div className="flex-1 flex justify-center items-center">
+          {showResults ? (
+            <nav className="flex gap-2" aria-label="Date idea navigation">
+              {ideas.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={clsx(
+                    "w-4 h-4 rounded-full border-2 transition-all",
+                    idx === carouselIdx
+                      ? "bg-pink-600 border-pink-600 scale-110 shadow"
+                      : "bg-gray-200 border-gray-300 hover:bg-pink-200"
+                  )}
+                  aria-current={idx === carouselIdx ? "step" : undefined}
+                  aria-label={`Go to date idea ${idx + 1}`}
+                  onClick={() => setCarouselIdx(idx)}
+                />
+              ))}
+            </nav>
+          ) : (
+            <ProgressBar
+              current={step}
+              total={totalSteps}
+              onStepClick={setStep}
+              canGoToStep={canGoToStep}
+            />
+          )}
+        </div>
+      </header>
+
+      {/* Scrollable step content, fills space between header/footer */}
+      <main className="flex flex-col w-full max-w-lg mx-auto pt-16 pb-20 min-h-[calc(100vh-8rem)] h-[calc(100vh-8rem)] overflow-y-auto">
         {!showResults ? (
-          <form className="w-full max-w-lg bg-white/80 rounded-2xl shadow-xl border border-pink-200/60 p-8 flex flex-col items-center gap-8">
-            <div className="w-full text-center">
-              <h2 className="text-2xl font-extrabold text-pink-600 mb-2">{q.title}</h2>
-              <p className="text-gray-500 mb-6">{q.subtitle}</p>
-            </div>
-            {isLocationStep ? (
-              <div className="relative w-full">
+          <form className="flex-1 flex flex-col items-center justify-center w-full px-4 py-6">
+            <div className="w-full flex flex-col items-center gap-8 transition-all duration-300">
+              <div className="w-full text-center">
+                <h2 className="text-2xl font-extrabold text-pink-600 mb-2">{q.title}</h2>
+                <p className="text-gray-500 mb-6">{q.subtitle}</p>
+              </div>
+              {isLocationStep ? (
+                <div className="relative w-full">
+                  <Input
+                    ref={inputRef}
+                    className="w-full rounded-xl border-2 border-pink-200 bg-white text-base placeholder:text-pink-300"
+                    placeholder={(q as any)?.placeholder}
+                    value={inputValue}
+                    onChange={e => {
+                      handleAnswer(q.id, e.target.value);
+                      locationAutocomplete.setShowDropdown(true);
+                    }}
+                    required={(q as any)?.required}
+                    autoComplete="off"
+                    aria-autocomplete="list"
+                    aria-controls="location-autocomplete-list"
+                    aria-expanded={locationAutocomplete.showDropdown}
+                    aria-activedescendant={locationAutocomplete.highlightedIdx >= 0 ? `location-suggestion-${locationAutocomplete.highlightedIdx}` : undefined}
+                    onBlur={() => setTimeout(() => locationAutocomplete.setShowDropdown(false), 100)}
+                    onFocus={() => inputValue.length >= 2 && locationAutocomplete.setShowDropdown(true)}
+                    onKeyDown={e => {
+                      if (!locationAutocomplete.showDropdown) return;
+                      if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        locationAutocomplete.setHighlightedIdx(i => Math.min(i + 1, locationAutocomplete.suggestions.length - 1));
+                      } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        locationAutocomplete.setHighlightedIdx(i => Math.max(i - 1, 0));
+                      } else if (e.key === "Enter" && locationAutocomplete.highlightedIdx >= 0) {
+                        e.preventDefault();
+                        locationAutocomplete.handleSelect(locationAutocomplete.highlightedIdx);
+                      }
+                    }}
+                  />
+                  {locationAutocomplete.showDropdown && locationAutocomplete.suggestions.length > 0 && (
+                    <ul
+                      id="location-autocomplete-list"
+                      className="absolute z-20 left-0 right-0 bg-white border border-pink-200 rounded-xl mt-1 shadow-lg max-h-60 overflow-auto"
+                      role="listbox"
+                    >
+                      {locationAutocomplete.suggestions.map((s, idx) => (
+                        <li
+                          key={s.place_id || s.osm_id || idx}
+                          id={`location-suggestion-${idx}`}
+                          role="option"
+                          aria-selected={locationAutocomplete.highlightedIdx === idx}
+                          className={clsx(
+                            "px-4 py-2 cursor-pointer hover:bg-pink-50",
+                            locationAutocomplete.highlightedIdx === idx && "bg-pink-100 text-pink-700"
+                          )}
+                          onMouseDown={e => {
+                            e.preventDefault();
+                            locationAutocomplete.handleSelect(idx);
+                          }}
+                          onMouseEnter={() => locationAutocomplete.setHighlightedIdx(idx)}
+                        >
+                          {s.display_name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {locationAutocomplete.loading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <span className="animate-spin inline-block w-5 h-5 border-2 border-pink-300 border-t-pink-600 rounded-full" aria-label="Loading suggestions" />
+                    </div>
+                  )}
+                </div>
+              ) : q.type === "text" ? (
                 <Input
-                  ref={inputRef}
                   className="w-full rounded-xl border-2 border-pink-200 bg-white text-base placeholder:text-pink-300"
                   placeholder={(q as any)?.placeholder}
-                  value={inputValue}
-                  onChange={e => {
-                    handleAnswer(q.id, e.target.value);
-                    locationAutocomplete.setShowDropdown(true);
-                  }}
+                  value={answers[q.id] || ""}
+                  onChange={e => handleAnswer(q.id, e.target.value)}
                   required={(q as any)?.required}
-                  autoComplete="off"
-                  aria-autocomplete="list"
-                  aria-controls="location-autocomplete-list"
-                  aria-expanded={locationAutocomplete.showDropdown}
-                  aria-activedescendant={locationAutocomplete.highlightedIdx >= 0 ? `location-suggestion-${locationAutocomplete.highlightedIdx}` : undefined}
-                  onBlur={() => setTimeout(() => locationAutocomplete.setShowDropdown(false), 100)}
-                  onFocus={() => inputValue.length >= 2 && locationAutocomplete.setShowDropdown(true)}
-                  onKeyDown={e => {
-                    if (!locationAutocomplete.showDropdown) return;
-                    if (e.key === "ArrowDown") {
-                      e.preventDefault();
-                      locationAutocomplete.setHighlightedIdx(i => Math.min(i + 1, locationAutocomplete.suggestions.length - 1));
-                    } else if (e.key === "ArrowUp") {
-                      e.preventDefault();
-                      locationAutocomplete.setHighlightedIdx(i => Math.max(i - 1, 0));
-                    } else if (e.key === "Enter" && locationAutocomplete.highlightedIdx >= 0) {
-                      e.preventDefault();
-                      locationAutocomplete.handleSelect(locationAutocomplete.highlightedIdx);
-                    }
-                  }}
                 />
-                {locationAutocomplete.showDropdown && locationAutocomplete.suggestions.length > 0 && (
-                  <ul
-                    id="location-autocomplete-list"
-                    className="absolute z-20 left-0 right-0 bg-white border border-pink-200 rounded-xl mt-1 shadow-lg max-h-60 overflow-auto"
-                    role="listbox"
-                  >
-                    {locationAutocomplete.suggestions.map((s, idx) => (
-                      <li
-                        key={s.place_id || s.osm_id || idx}
-                        id={`location-suggestion-${idx}`}
-                        role="option"
-                        aria-selected={locationAutocomplete.highlightedIdx === idx}
-                        className={clsx(
-                          "px-4 py-2 cursor-pointer hover:bg-pink-50",
-                          locationAutocomplete.highlightedIdx === idx && "bg-pink-100 text-pink-700"
-                        )}
-                        onMouseDown={e => {
-                          e.preventDefault();
-                          locationAutocomplete.handleSelect(idx);
-                        }}
-                        onMouseEnter={() => locationAutocomplete.setHighlightedIdx(idx)}
-                      >
-                        {s.display_name}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {locationAutocomplete.loading && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <span className="animate-spin inline-block w-5 h-5 border-2 border-pink-300 border-t-pink-600 rounded-full" aria-label="Loading suggestions" />
-                  </div>
-                )}
-              </div>
-            ) : q.type === "text" ? (
-              <Input
-                className="w-full rounded-xl border-2 border-pink-200 bg-white text-base placeholder:text-pink-300"
-                placeholder={(q as any)?.placeholder}
-                value={answers[q.id] || ""}
-                onChange={e => handleAnswer(q.id, e.target.value)}
-                required={(q as any)?.required}
-              />
-            ) : null}
-            {q.type === "single" && (
-              <div className="flex flex-wrap gap-4 justify-center">
-                {(q as any).options?.map((opt: any) => (
-                  <OptionCard
-                    key={opt.id}
-                    selected={answers[q.id] === opt.id}
-                    icon={opt.icon}
-                    label={opt.label}
-                    onClick={() => handleAnswer(q.id, opt.id)}
-                  />
-                ))}
-              </div>
-            )}
-            {q.type === "multiple" && (
-              <div className="flex flex-wrap gap-4 justify-center">
-                {(q as any).options?.map((opt: any) => (
-                  <OptionCard
-                    key={opt.id}
-                    selected={answers[q.id]?.includes(opt.id)}
-                    icon={opt.icon}
-                    label={opt.label}
-                    onClick={() => handleMultiAnswer(q.id, opt.id)}
-                  />
-                ))}
-              </div>
-            )}
-            <div className="flex w-full justify-between mt-8">
-              <Button type="button" variant="outline" onClick={handleBack} disabled={step === 0} className="rounded-full px-6 py-2">
-                <ChevronLeft className="w-5 h-5 mr-1" /> Back
-              </Button>
-              {(() => {
-                const stepKey = q.id;
-                const isRequired = (q as any)?.required;
-                let hasValue = false;
-                if (q.type === 'text') {
-                  hasValue = Boolean(answers[stepKey] && String(answers[stepKey]).trim() !== '');
-                } else if (q.type === 'single') {
-                  hasValue = Boolean(answers[stepKey]);
-                } else if (q.type === 'multiple') {
-                  hasValue = Array.isArray(answers[stepKey]) && answers[stepKey].length > 0;
-                }
-                // Always show primary button for last step (Plan Date)
-                if (isLast) {
-                  return (
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      className="rounded-full px-8 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold text-lg shadow-lg hover:from-pink-600 hover:to-red-600 transition-all"
-                      disabled={isRequired && !hasValue}
-                    >
-                      Plan Date <ChevronRight className="w-5 h-5 ml-1" />
-                    </Button>
-                  );
-                }
-                // If required and not filled, show disabled primary Next
-                if (isRequired && !hasValue) {
-                  return (
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      className="rounded-full px-8 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold text-lg shadow-lg hover:from-pink-600 hover:to-red-600 transition-all"
-                      disabled
-                    >
-                      Next <ChevronRight className="w-5 h-5 ml-1" />
-                    </Button>
-                  );
-                }
-                // If not required and not filled, show Skip (secondary)
-                if (!isRequired && !hasValue) {
-                  return (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleNext}
-                      className="rounded-full px-8 py-3"
-                    >
-                      Skip <ChevronRight className="w-5 h-5 ml-1" />
-                    </Button>
-                  );
-                }
-                // Otherwise, show primary Next
-                return (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    className="rounded-full px-8 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold text-lg shadow-lg hover:from-pink-600 hover:to-red-600 transition-all"
-                  >
-                    Next <ChevronRight className="w-5 h-5 ml-1" />
-                  </Button>
-                );
-              })()}
+              ) : null}
+              {q.type === "single" && (
+                <div className="flex flex-wrap gap-4 justify-center">
+                  {(q as any).options?.map((opt: any) => (
+                    <OptionCard
+                      key={opt.id}
+                      selected={answers[q.id] === opt.id}
+                      icon={opt.icon}
+                      label={opt.label}
+                      onClick={() => handleAnswer(q.id, opt.id)}
+                    />
+                  ))}
+                </div>
+              )}
+              {q.type === "multiple" && (
+                <div className="flex flex-wrap gap-4 justify-center">
+                  {(q as any).options?.map((opt: any) => (
+                    <OptionCard
+                      key={opt.id}
+                      selected={answers[q.id]?.includes(opt.id)}
+                      icon={opt.icon}
+                      label={opt.label}
+                      onClick={() => handleMultiAnswer(q.id, opt.id)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </form>
         ) : (
-          <div className="w-full">
-            <h2 className="text-2xl font-extrabold text-pink-600 mb-6 text-center">Your Date Ideas</h2>
+          <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] pt-16 pb-20 flex-grow min-h-0 overflow-y-auto">
             {ideas.length > 0 && (
-              <>
-                <CarouselProgress current={carouselIdx} total={ideas.length} />
-                <div className="flex items-center justify-center w-full">
-                  {currentIdea && (
-                    <InfluencerDateStory
-                      idea={currentIdea}
-                      onPlan={() => handlePlan(currentIdea)}
-                      onShare={() => handleShare(currentIdea)}
-                      onSave={() => handleSave(currentIdea)}
-                      onPrev={() => setCarouselIdx(i => Math.max(0, i - 1))}
-                      onNext={() => setCarouselIdx(i => Math.min(ideas.length - 1, i + 1))}
-                      showPrev={carouselIdx > 0}
-                      showNext={carouselIdx < ideas.length - 1}
-                    />
-                  )}
-                </div>
-              </>
+              <div className="flex items-center justify-center w-full flex-1 min-h-0">
+                {currentIdea && (
+                  <InfluencerDateStory
+                    idea={currentIdea}
+                    onPlan={() => handlePlan(currentIdea)}
+                    onShare={() => handleShare(currentIdea)}
+                    onSave={() => handleSave(currentIdea)}
+                  />
+                )}
+              </div>
             )}
             {isLoading && (
               <div className="flex flex-col items-center justify-center py-12">
@@ -533,11 +463,6 @@ export default function InfluencerPage() {
                 </p>
               </div>
             )}
-            <div className="flex justify-center mt-8">
-              <Button variant="outline" className="rounded-full px-8 py-3" onClick={() => setShowResults(false)} disabled={isLoading}>
-                <ChevronLeft className="w-5 h-5 mr-1" /> Start Over
-              </Button>
-            </div>
           </div>
         )}
         {/* Share Modal */}
@@ -556,6 +481,106 @@ export default function InfluencerPage() {
           </div>
         )}
       </main>
+
+      {/* Sticky footer with navigation (step or carousel) */}
+      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-pink-100 flex justify-between items-center px-4 py-3 h-20">
+        {showResults ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCarouselIdx(i => Math.max(0, i - 1))}
+              disabled={carouselIdx === 0}
+              className="rounded-full px-6 py-2"
+              aria-label="Previous date idea"
+            >
+              <ChevronLeft className="w-5 h-5 mr-1" /> Prev
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowResults(false)}
+              className="rounded-full px-6 py-2"
+              aria-label="Start Over"
+            >
+              <RotateCcw className="w-5 h-5 mr-1" /> Start Over
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCarouselIdx(i => Math.min(ideas.length - 1, i + 1))}
+              disabled={carouselIdx === ideas.length - 1}
+              className="rounded-full px-6 py-2"
+              aria-label="Next date idea"
+            >
+              Next <ChevronRight className="w-5 h-5 ml-1" />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button type="button" variant="outline" onClick={handleBack} disabled={step === 0} className="rounded-full px-6 py-2">
+              <ChevronLeft className="w-5 h-5 mr-1" /> Back
+            </Button>
+            {(() => {
+              const stepKey = q.id;
+              const isRequired = (q as any)?.required;
+              let hasValue = false;
+              if (q.type === 'text') {
+                hasValue = Boolean(answers[stepKey] && String(answers[stepKey]).trim() !== '');
+              } else if (q.type === 'single') {
+                hasValue = Boolean(answers[stepKey]);
+              } else if (q.type === 'multiple') {
+                hasValue = Array.isArray(answers[stepKey]) && answers[stepKey].length > 0;
+              }
+              if (isLast) {
+                return (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="rounded-full px-8 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold text-lg shadow-lg hover:from-pink-600 hover:to-red-600 transition-all"
+                    disabled={isRequired && !hasValue}
+                  >
+                    Plan Date <ChevronRight className="w-5 h-5 ml-1" />
+                  </Button>
+                );
+              }
+              if (isRequired && !hasValue) {
+                return (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    className="rounded-full px-8 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold text-lg shadow-lg hover:from-pink-600 hover:to-red-600 transition-all"
+                    disabled
+                  >
+                    Next <ChevronRight className="w-5 h-5 ml-1" />
+                  </Button>
+                );
+              }
+              if (!isRequired && !hasValue) {
+                return (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleNext}
+                    className="rounded-full px-8 py-3"
+                  >
+                    Skip <ChevronRight className="w-5 h-5 ml-1" />
+                  </Button>
+                );
+              }
+              return (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  className="rounded-full px-8 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold text-lg shadow-lg hover:from-pink-600 hover:to-red-600 transition-all"
+                >
+                  Next <ChevronRight className="w-5 h-5 ml-1" />
+                </Button>
+              );
+            })()}
+          </>
+        )}
+      </footer>
     </div>
   );
 } 
