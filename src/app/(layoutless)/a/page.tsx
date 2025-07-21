@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -295,6 +295,13 @@ export default function InfluencerPage() {
     },
   });
 
+  const mainContentRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (!showResults && mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [step, showResults]);
+
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-pink-100 via-yellow-50 to-white">
       {/* Sticky header: progress bar for steps, carousel nav for results */}
@@ -330,7 +337,7 @@ export default function InfluencerPage() {
       </header>
 
       {/* Scrollable step content, fills space between header/footer */}
-      <main className="flex flex-col w-full max-w-lg mx-auto pt-16 pb-20 min-h-[calc(100vh-8rem)] h-[calc(100vh-8rem)] overflow-y-auto">
+      <main ref={mainContentRef} className="flex flex-col w-full max-w-lg mx-auto pt-16 pb-20 min-h-[calc(100vh-8rem)] h-[calc(100vh-8rem)] overflow-y-auto">
         {!showResults ? (
           <form className="flex-1 flex flex-col items-center justify-center w-full px-4 py-6">
             <div className="w-full flex flex-col items-center gap-8 transition-all duration-300">
