@@ -18,7 +18,7 @@ export const dateIdeaSchema = z.object({
   duration: z.string().describe("Duration of the date idea"),
   cost: z.string().describe("Cost of the date idea"),
   rating: z.number().min(0).max(5).describe("Rating of the date idea"),
-  description: z.string().describe("Description of the date idea"),
+  description: z.string().describe("Description of the date idea.").length(200, { message: "Description must be exactly 200 characters" }),
 });
 
 export type DateIdea = z.infer<typeof dateIdeaSchema>;

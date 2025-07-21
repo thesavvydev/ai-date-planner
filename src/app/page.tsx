@@ -83,11 +83,11 @@ function DateCard({ idea }: { idea: DateIdea }) {
 }
 
 function SelectedFiltersRow({ formState, onRemove, onClearAll }: { formState: any, onRemove: (id: string, value?: string) => void, onClearAll?: () => void }) {
-  const { location:_location, vibes:_vibes, ...otherFilters } = formState || {};
-  const filterQs = Object.values(otherFilters)
+  // Use QUESTIONS_DICTIONARY to get filter definitions
+  const filterQs = Object.values(QUESTIONS_DICTIONARY).filter(q => q.id !== "location" && q.id !== "vibes");
   type Selected = { id: string; label: string; value: string | string[]; q: any };
   const selected: Selected[] = [];
-  for (const q of filterQs) {
+  for (const q of filterQs as any[]) {
     const val = formState?.[q.id];
     if (q.type === "text" && val && val.trim() !== "") {
       selected.push({ id: q.id, label: q.title, value: val, q });
@@ -321,7 +321,7 @@ export default function Page() {
   const [hasMounted, setHasMounted] = useState(false);
   const [loadingTime, setLoadingTime] = useState(0);
   const loadingInterval = useRef<NodeJS.Timeout | null>(null);
-  useEffect(() => { setHasMounted(true); }, []);
+  const [filtersChanged, setFiltersChanged] = useState(false);
   const {
     object: dateIdeas = [],
     submit,
@@ -333,6 +333,7 @@ export default function Page() {
       console.error(error);
     }
   });
+  useEffect(() => { setHasMounted(true); }, []);
 
   const hasResults = dateIdeas.length > 0;
 
@@ -360,6 +361,7 @@ export default function Page() {
   function handleSubmit() {
     setForm(formState);
     submit({ questionData: formState });
+    setFiltersChanged(false);
   }
 
   function handleRemoveFilter(id: string, value?: string) {
@@ -375,6 +377,7 @@ export default function Page() {
         return newState;
       }
     });
+    setFiltersChanged(true);
   }
 
   function handleClearAllFilters() {
@@ -384,6 +387,7 @@ export default function Page() {
       const { location, vibes } = prev;
       return { location, vibes };
     });
+    setFiltersChanged(true);
   }
 
   if (!hasMounted) return null;
@@ -396,6 +400,11 @@ export default function Page() {
           <FilterRow formState={formState} setFormState={setFormState} openModal={() => setModalOpen(true)} onApply={handleSubmit} isLoading={isLoading} />
         </div>
         <SelectedFiltersRow formState={formState} onRemove={handleRemoveFilter} onClearAll={handleClearAllFilters} />
+        {filtersChanged && (
+          <div className="text-center text-pink-600 text-sm font-medium mt-2" aria-live="polite">
+            Apply filters to see updated results.
+          </div>
+        )}
       </section>
       <FilterModal open={modalOpen} onOpenChange={setModalOpen} formState={formState} setFormState={setFormState} onSubmit={handleSubmit} isLoading={isLoading} />
       {!hasResults && !isLoading && (
@@ -408,8 +417,11 @@ export default function Page() {
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
-        {isLoading ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-12">
+        {dateIdeas.filter(Boolean).map((idea, idx) => (
+          <DateCard key={idea?.id ?? idx} idea={idea as DateIdea} />
+        ))}
+        {isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-10">
             <div className="animate-spin rounded-full h-12 w-12 border-t-8 border-b-4 border-b-pink-100 border-pink-500 mx-auto" aria-label="Loading spinner" />
             <p className="text-2xl font-bold bg-gradient-to-r from-pink-200 via-pink-100 to-red-100 bg-clip-text text-transparent mt-4">
               Loading date ideas...
@@ -418,10 +430,6 @@ export default function Page() {
               {loadingTime} second{loadingTime === 1 ? "" : "s"} elapsed
             </p>
           </div>
-        ) : (
-          dateIdeas.filter(Boolean).map((idea, idx) => (
-            <DateCard key={idea?.id ?? idx} idea={idea as DateIdea} />
-          ))
         )}
       </div>
     </main>

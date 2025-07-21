@@ -1,6 +1,6 @@
 import { dateIdeaSchema } from "@/schema/dateIdea";
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { streamObject } from "ai";
 
 export const maxDuration = 30;
 
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   const userAnswers = formatQuestionData(questionData);
 
   
-  const result = await generateObject({
+  const result = streamObject({
     model: openai("gpt-4o"),
     prompt: `Generate date ideas based on the user's answers to a questionnaire. Make it the most amazing date possible.`,
     system: `You are a helpful AI assistant that helps users plan a date. 
@@ -38,5 +38,5 @@ export async function POST(req: Request) {
     schema: dateIdeaSchema,
   });
 
-  return result.toJsonResponse();
+  return result.toTextStreamResponse();
 }
