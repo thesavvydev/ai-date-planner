@@ -68,11 +68,12 @@ async function getDetailedDateIdea(id: string): Promise<DetailedDateIdea> {
 export default async function DateIdeaPage({ 
   params
 }: { 
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   let detailedDateIdea: DetailedDateIdea;
   try {
-    detailedDateIdea = await getDetailedDateIdea(params.id);
+    detailedDateIdea = await getDetailedDateIdea(id);
   } catch (error) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
