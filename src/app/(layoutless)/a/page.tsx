@@ -305,7 +305,7 @@ export default function InfluencerPage() {
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-pink-100 via-yellow-50 to-white">
       {/* Sticky header: progress bar for steps, carousel nav for results */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 border-b border-pink-100 flex items-center justify-center h-16">
+      <header className="sticky top-0 z-40 bg-white/95 border-b border-pink-100 flex items-center justify-center h-16">
         <div className="flex-1 flex justify-center items-center">
           {showResults ? (
             <nav className="flex gap-2" aria-label="Date idea navigation">
@@ -337,9 +337,9 @@ export default function InfluencerPage() {
       </header>
 
       {/* Scrollable step content, fills space between header/footer */}
-      <main ref={mainContentRef} className="flex flex-col w-full max-w-lg mx-auto pt-16 pb-20 min-h-[calc(100vh-8rem)] h-[calc(100vh-8rem)] overflow-y-auto">
+      <main ref={mainContentRef} className="flex flex-col w-full max-w-lg mx-auto pt-6 pb-6 min-h-[calc(100vh-8rem)] h-[calc(100vh-8rem)] overflow-y-auto">
         {!showResults ? (
-          <form className="flex-1 flex flex-col items-center justify-center w-full px-4 py-6">
+          <form className="flex-1 flex flex-col items-center justify-center w-full px-2 py-2">
             <div className="w-full flex flex-col items-center gap-8 transition-all duration-300">
               <div className="w-full text-center">
                 <h2 className="text-2xl font-extrabold text-pink-600 mb-2">{q.title}</h2>
@@ -449,7 +449,7 @@ export default function InfluencerPage() {
             </div>
           </form>
         ) : (
-          <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] pt-16 pb-20 flex-grow min-h-0 overflow-y-auto">
+          <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] pt-6 pb-6 flex-grow min-h-0 overflow-y-auto">
             {ideas.length > 0 && (
               <div className="flex items-center justify-center w-full flex-1 min-h-0">
                 {currentIdea && (
