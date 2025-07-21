@@ -168,6 +168,7 @@ function FilterRow({ formState, setFormState, openModal, onApply, isLoading }: {
             onChange={e => setFormState((prev: any) => ({ ...prev, location: e.target.value ?? "" }))}
             className="w-full rounded-xl border-2 border-pink-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 bg-white text-base shadow-none placeholder:text-pink-300 focus:outline-none"
             required={(locationQ as any)?.required ?? false}
+            disabled={isLoading}
           />
         </div>
         {/* Vibe dropdown */}
@@ -175,7 +176,7 @@ function FilterRow({ formState, setFormState, openModal, onApply, isLoading }: {
           <Label className="mb-1 text-pink-700 text-xs font-semibold tracking-wide">{(vibeQ as any)?.icon ?? ""} Vibe</Label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button type="button" variant="outline" className="w-full flex justify-between items-center rounded-xl border-2 border-pink-200 bg-white hover:bg-pink-50 text-base font-medium transition-all shadow-none focus:outline-none focus:ring-2 focus:ring-pink-400">
+              <Button type="button" variant="outline" className="w-full flex justify-between items-center rounded-xl border-2 border-pink-200 bg-white hover:bg-pink-50 text-base font-medium transition-all shadow-none focus:outline-none focus:ring-2 focus:ring-pink-400" disabled={isLoading}>
                 <span className="truncate">
                   {formState.vibes?.length
                     ? (vibeQ as any)?.options?.filter((o: any) => formState.vibes?.includes(o.id)).map((o: any) => o.label).join(", ")
@@ -203,6 +204,7 @@ function FilterRow({ formState, setFormState, openModal, onApply, isLoading }: {
                         });
                       }}
                       aria-label={opt.label}
+                      disabled={isLoading}
                     />
                     <span className="text-lg" aria-hidden="true">{opt.icon}</span>
                     <span>{opt.label}</span>
@@ -214,7 +216,7 @@ function FilterRow({ formState, setFormState, openModal, onApply, isLoading }: {
         </div>
         {/* Filter menu button */}
         <div className="flex-none flex flex-col justify-end">
-          <Button type="button" variant="outline" className="w-full sm:w-auto rounded-xl border-2 border-pink-200 bg-white hover:bg-pink-50 text-base font-medium shadow-none transition-all focus:outline-none focus:ring-2 focus:ring-pink-400" onClick={openModal} aria-label="Open more filters">
+          <Button type="button" variant="outline" className="w-full sm:w-auto rounded-xl border-2 border-pink-200 bg-white hover:bg-pink-50 text-base font-medium shadow-none transition-all focus:outline-none focus:ring-2 focus:ring-pink-400" onClick={openModal} aria-label="Open more filters" disabled={isLoading}>
             <span className="hidden sm:inline">More Filters</span>
             <span className="sm:hidden">Filters</span>
           </Button>
@@ -267,6 +269,7 @@ function FilterModal({ open, onOpenChange, formState, setFormState, onSubmit, is
                   onChange={e => handleChange(q.id, e.target.value)}
                   className="max-w-full"
                   required={(q as any)?.required ?? false}
+                  disabled={isLoading}
                 />
               )}
               {q.type === "single" && (
@@ -274,6 +277,7 @@ function FilterModal({ open, onOpenChange, formState, setFormState, onSubmit, is
                   value={formState[q.id] || ""}
                   onValueChange={val => handleChange(q.id, val)}
                   className="gap-2"
+                  disabled={isLoading}
                 >
                   {(q as any)?.options?.map((opt: any) => (
                     <Label key={opt.id} className="flex items-center gap-2 py-1">
@@ -291,6 +295,7 @@ function FilterModal({ open, onOpenChange, formState, setFormState, onSubmit, is
                       <Checkbox
                         checked={formState[q.id]?.includes(opt.id) || false}
                         onCheckedChange={() => handleMultiChange(q.id, opt.id)}
+                        disabled={isLoading}
                       />
                       <span className="text-lg">{opt.icon}</span>
                       <span>{opt.label}</span>
@@ -302,7 +307,7 @@ function FilterModal({ open, onOpenChange, formState, setFormState, onSubmit, is
           ))}
           <div className="flex justify-end gap-2 pt-2">
             <DialogClose asChild>
-              <Button type="button" variant="ghost">Cancel</Button>
+              <Button type="button" variant="ghost" disabled={isLoading}>Cancel</Button>
             </DialogClose>
             <Button type="submit" disabled={isLoading} className="bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold">
               {isLoading ? "Searching..." : "Apply Filters"}
