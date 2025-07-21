@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   if (!key) {
     return new Response(JSON.stringify({ error: "Missing LocationIQ API key" }), { status: 500, headers: { "Content-Type": "application/json" } });
   }
-  const url = `https://us1.locationiq.com/v1/autocomplete?key=${key}&q=${encodeURIComponent(q)}&limit=5&dedupe=1&normalizecity=1&tag=place:city,place:town,place:village`;
+  const url = `https://us1.locationiq.com/v1/autocomplete?key=${key}&q=${encodeURIComponent(q)}&limit=5&dedupe=1`;
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error("LocationIQ error");

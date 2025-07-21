@@ -16,6 +16,7 @@ import { ChevronDown, Clock, MapPin, Star, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
+import { useCallback } from "react";
 
 // --- useLocalStorage hook ---
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
@@ -42,6 +43,65 @@ function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => voi
   return [storedValue, setValue];
 }
 // --- end useLocalStorage hook ---
+
+// Location Autocomplete Hook
+function useLocationAutocomplete({ value, onSelect, disabled }: { value: string; onSelect: (val: string) => void; disabled?: boolean }) {
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [highlightedIdx, setHighlightedIdx] = useState(-1);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!value || value.length < 2 || disabled) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+    setLoading(true);
+    setShowDropdown(true);
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const fetchSuggestions = async () => {
+      try {
+        const res = await fetch(
+          `/api/location-autocomplete?q=${encodeURIComponent(value)}`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) throw new Error("Failed to fetch suggestions");
+        const data = await res.json();
+        setSuggestions(data);
+      } catch (e) {
+        if ((e as any).name !== "AbortError") setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    const debounce = setTimeout(fetchSuggestions, 250);
+    return () => {
+      clearTimeout(debounce);
+      controller.abort();
+    };
+  }, [value, disabled]);
+
+  const handleSelect = useCallback((idx: number) => {
+    if (suggestions[idx]) {
+      onSelect(suggestions[idx].display_name);
+      setShowDropdown(false);
+    }
+  }, [onSelect, suggestions]);
+
+  return {
+    suggestions,
+    loading,
+    showDropdown,
+    setShowDropdown,
+    highlightedIdx,
+    setHighlightedIdx,
+    handleSelect,
+  };
+}
 
 function DateCard({ idea }: { idea: DateIdea }) {
   return (
@@ -149,6 +209,33 @@ function SelectedFiltersRow({ formState, onRemove, onClearAll }: { formState: an
 function FilterRow({ formState, setFormState, openModal, onApply, isLoading }: { formState: any, setFormState: (f: any) => void, openModal: () => void, onApply: () => void, isLoading: boolean }) {
   const locationQ = QUESTIONS_DICTIONARY.location;
   const vibeQ = QUESTIONS_DICTIONARY.vibes;
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const locationDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!formState.location || formState.location.length < 2 || isLoading) {
+      setLocationSuggestions([]);
+      return;
+    }
+    setLocationLoading(true);
+    if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current);
+    locationDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/location-autocomplete?q=${encodeURIComponent(formState.location)}`);
+        if (!res.ok) throw new Error("Failed to fetch suggestions");
+        const data = await res.json();
+        setLocationSuggestions(data);
+      } catch {
+        setLocationSuggestions([]);
+      } finally {
+        setLocationLoading(false);
+      }
+    }, 250);
+    return () => {
+      if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current);
+    };
+  }, [formState.location, isLoading]);
   return (
     <form
       className="w-full mb-0"
@@ -158,18 +245,32 @@ function FilterRow({ formState, setFormState, openModal, onApply, isLoading }: {
       }}
     >
       <div className="flex flex-col sm:flex-row items-stretch gap-2 sm:gap-4 bg-transparent rounded-2xl border-0 px-0 py-0">
-        {/* Location input */}
+        {/* Location input with autocomplete */}
         <div className="flex-1 flex flex-col justify-end">
           <Label htmlFor="location-input" className="mb-1 text-pink-700 text-xs font-semibold tracking-wide">{(locationQ as any)?.icon ?? ""} {locationQ?.title}</Label>
           <Input
             id="location-input"
+            ref={locationInputRef}
+            list="location-suggestions"
             placeholder={(locationQ as any)?.placeholder ?? ""}
             value={formState.location || ""}
             onChange={e => setFormState((prev: any) => ({ ...prev, location: e.target.value ?? "" }))}
             className="w-full rounded-xl border-2 border-pink-200 focus:border-pink-400 focus:ring-2 focus:ring-pink-200 bg-white text-base shadow-none placeholder:text-pink-300 focus:outline-none"
             required={(locationQ as any)?.required ?? false}
             disabled={isLoading}
+            autoComplete="off"
+            aria-autocomplete="list"
           />
+          <datalist id="location-suggestions">
+            {locationSuggestions.map((s, idx) => (
+              <option key={s.place_id || s.osm_id || idx} value={s.display_name} />
+            ))}
+          </datalist>
+          {locationLoading && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <span className="animate-spin inline-block w-5 h-5 border-2 border-pink-300 border-t-pink-600 rounded-full" aria-label="Loading suggestions" />
+            </div>
+          )}
         </div>
         {/* Vibe dropdown */}
         <div className="flex-1 flex flex-col justify-end">
