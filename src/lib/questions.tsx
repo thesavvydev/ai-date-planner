@@ -1,14 +1,15 @@
 import { Beef, Bone, CarrotIcon, CheckCircle, Droplet, Fish, Flower2, Leaf, MilkOff, Nut, Salad, Scale, Wheat } from "lucide-react";
-export const QUESTIONS = [
-    {
+export const QUESTIONS_DICTIONARY = {
+     "location": {
       id: "location",
       title: "Where are you located?",
       subtitle: "We'll find the perfect spots near you",
       type: "text",
       placeholder: "Enter your city or location...",
       icon: "📍",
+      required: true
     },
-    {
+     "vibes": {
       id: "vibes",
       title: "What's your ideal vibe?",
       subtitle: "Pick all that apply - we love variety!",
@@ -23,39 +24,7 @@ export const QUESTIONS = [
         { id: "goofy", label: "Goofy", icon: "🤪" },
       ],
     },
-    // {
-    //   id: "dietary",
-    //   title: "Any dietary preferences?",
-    //   subtitle: "We'll make sure you have delicious options",
-    //   placeholder: "e.g., vegetarian, gluten-free, no restrictions...",
-    //   icon: "🍽️",
-    //   type: "multiple",
-    //   options: [
-    //     { "id": "milk", "label": "Milk", "icon": <Milk /> },
-    //     { "id": "eggs", "label": "Eggs", "icon": <Egg /> },
-    //     { "id": "peanuts", "label": "Peanuts", "icon": <Nut /> },
-    //     { "id": "tree_nuts", "label": "Tree Nuts", "icon": <Nut /> },
-    //     { "id": "wheat", "label": "Wheat", "icon": <Wheat /> },
-    //     { "id": "soy", "label": "Soy", "icon": <Bean /> },
-    //     { "id": "fish", "label": "Fish", "icon": <Fish /> },
-    //     { "id": "shellfish", "label": "Shellfish", "icon": <Shell /> },
-    //     { "id": "sesame", "label": "Sesame", "icon": <Bean /> },
-    //     { "id": "gluten", "label": "Gluten", "icon": <Wheat /> },
-    //     { "id": "lactose", "label": "Lactose", "icon": <MilkOff /> },
-    //     { "id": "vegetarian", "label": "Vegetarian", "icon": <Leaf /> },
-    //     { "id": "vegan", "label": "Vegan", "icon": <Leaf /> },
-    //     { "id": "kosher", "label": "Kosher", "icon": <ChefHat /> },
-    //     { "id": "halal", "label": "Halal", "icon": <MoonStar /> },
-    //     { "id": "no_pork", "label": "No Pork", "icon": <PiggyBank /> },
-    //     { "id": "no_beef", "label": "No Beef", "icon": <Beef /> },
-    //     { "id": "diabetes_friendly", "label": "Diabetes Friendly", "icon": <Droplets /> },
-    //     { "id": "paleo", "label": "Paleo", "icon": <Bone /> },
-    //     { "id": "keto", "label": "Keto", "icon": <Droplet /> },
-    //     { "id": "raw_food", "label": "Raw Food", "icon": <Salad /> },
-    //     { "id": "alpha_gal", "label": "Alpha-gal Syndrome", "icon": <BugOff /> },
-    //   ],
-    // },
-    {
+     "dietary": {
       id: "dietary",
       title: "Any dietary preferences?",
       subtitle: "We'll make sure you have delicious options",
@@ -79,7 +48,7 @@ export const QUESTIONS = [
           { "id": "plant_based", "label": "Plant-Based", "icon": <Flower2 /> }
       ],
     },
-    {
+     "budget": {
       id: "budget",
       title: "What's your budget?",
       subtitle: "Great dates happen at every price point",
@@ -91,7 +60,7 @@ export const QUESTIONS = [
         { id: "high", label: "$$$", icon: "💳", desc: "Under $200 total" },
       ],
     },
-    {
+     "timeframe": {
       id: "timeframe",
       title: "When are you planning this?",
       subtitle: "We'll suggest options based on timing",
@@ -118,7 +87,7 @@ export const QUESTIONS = [
         },
       ],
     },
-    {
+     "duration": {
       id: "duration",
       title: "How much time do you have?",
       subtitle: "We'll match activities to your schedule",
@@ -129,7 +98,7 @@ export const QUESTIONS = [
         { id: "full-day", label: "Full Day", icon: "☀️", desc: "6+ hours" },
       ],
     },
-    {
+     "celebration": {
       id: "celebration",
       title: "Celebrating something special?",
       subtitle: "We'll add extra magic to your suggestions",
@@ -137,33 +106,7 @@ export const QUESTIONS = [
       placeholder: "e.g., anniversary, birthday, or just because...",
       icon: "🎉",
     },
-    // {
-    //   id: "involvement",
-    //   title: "Planning preference?",
-    //   subtitle: "How involved do you want to be?",
-    //   type: "single",
-    //   options: [
-    //     {
-    //       id: "surprise",
-    //       label: "Surprise Me!",
-    //       icon: "🎁",
-    //       desc: "Full surprise planning",
-    //     },
-    //     {
-    //       id: "collaborate",
-    //       label: "Let's Plan Together",
-    //       icon: "🤝",
-    //       desc: "Collaborative planning",
-    //     },
-    //     {
-    //       id: "control",
-    //       label: "I Want Control",
-    //       icon: "🎯",
-    //       desc: "Detailed planning",
-    //     },
-    //   ],
-    // },
-    {
+     "dislikes": {
       id: "dislikes",
       title: "What dates do you NOT enjoy?",
       subtitle: "We'll steer clear of these completely",
@@ -171,7 +114,7 @@ export const QUESTIONS = [
       placeholder: "e.g., crowded places, loud music, heights...",
       icon: "🚫",
     },
-    {
+     "activityLevel": {
       id: "activityLevel",
       title: "How active do you want to be?",
       subtitle: "Match the energy to your mood",
@@ -192,5 +135,6 @@ export const QUESTIONS = [
         },
       ],
     },
-  ];
-  
+}
+
+export const QUESTIONS = Object.values(QUESTIONS_DICTIONARY);
