@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { Label } from "@/components/ui/label";
-import { DATE_CATEGORIES, DateIdea, dateIdeaSchema } from "@/schema/dateIdea";
-import { experimental_useObject } from "@ai-sdk/react";
 import { QUESTIONS_DICTIONARY } from "@/lib/questions";
 import { cn } from "@/lib/utils";
-import { Star, MapPin, Clock, Share2, ChevronLeft, ChevronRight, X, Bookmark, RotateCcw } from "lucide-react";
-import z from "zod";
-import React from "react"; // Added missing import
+import { DATE_CATEGORIES, DateIdea, dateIdeaSchema } from "@/schema/dateIdea";
+import { experimental_useObject } from "@ai-sdk/react";
 import { clsx } from "clsx"; // Added missing import
+import { Bookmark, ChevronLeft, ChevronRight, Clock, MapPin, RotateCcw, Share2, Star, X } from "lucide-react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react"; // Added missing import
+import z from "zod";
 
 const STEPS = [
   QUESTIONS_DICTIONARY.location,
@@ -449,9 +444,9 @@ export default function InfluencerPage() {
             </div>
           </form>
         ) : (
-          <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] pt-6 pb-6 flex-grow min-h-0 overflow-y-auto">
+          <div className="flex flex-col w-full h-full min-h-[calc(100vh-8rem)] flex-grow min-h-0 items-center justify-center">
             {ideas.length > 0 && (
-              <div className="flex items-center justify-center w-full flex-1 min-h-0">
+              <div className="flex items-center justify-center w-full flex-1 min-h-0 overflow-y-auto">
                 {currentIdea && (
                   <InfluencerDateStory
                     idea={currentIdea}

@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
 import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 // --- useLocalStorage hook ---
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
@@ -103,7 +104,9 @@ function useLocationAutocomplete({ value, onSelect, disabled }: { value: string;
   };
 }
 
+
 function DateCard({ idea }: { idea: DateIdea }) {
+  const router = useRouter();
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
       <div className="p-6">
@@ -435,9 +438,6 @@ export default function Page() {
   } = experimental_useObject({
     api: "/api/advanced-date-suggestions",
     schema: z.array(dateIdeaSchema),
-    onError: (error) => {
-      console.error(error);
-    }
   });
   useEffect(() => { setHasMounted(true); }, []);
 
