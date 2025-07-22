@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen:types": "npx --yes supabase gen types --lang=typescript --local > src/types/supabase.d.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "2.0.0-beta.8",

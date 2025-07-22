@@ -18,6 +18,8 @@ import { useEffect, useRef, useState } from "react";
 import z from "zod";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import type { TablesInsert } from "@/types/supabase";
 
 // --- useLocalStorage hook ---
 function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
@@ -105,8 +107,27 @@ function useLocationAutocomplete({ value, onSelect, disabled }: { value: string;
 }
 
 
-function DateCard({ idea }: { idea: DateIdea }) {
+function DateCard({ idea, filters }: { idea: DateIdea, filters: any }) {
   const router = useRouter();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function handlePlanThisDate() {
+    setErrorMsg(null);
+    const supabase = createClient();
+    const insertData: TablesInsert<"date_ideas"> = {
+      date_idea: idea,
+      date_filters: filters,
+    };
+    const { data, error } = await supabase.from("date_ideas").insert([insertData]).select();
+    if (error) {
+      setErrorMsg("Failed to save date idea: " + error.message);
+    } else if (data && data[0]?.id) {
+      router.push(`/date-idea/${data[0].id}`);
+    } else {
+      setErrorMsg("Date idea saved, but could not get new id.");
+    }
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
       <div className="p-6">
@@ -136,10 +157,19 @@ function DateCard({ idea }: { idea: DateIdea }) {
           </div>
         </div>
         <Link href={`/date-idea/${idea.id}`}>
-          <button className="w-full mt-4 bg-gradient-to-r from-pink-500 to-red-500 text-white py-3 rounded-xl font-medium hover:from-pink-600 hover:to-red-600 transition-all">
+          <button
+            type="button"
+            className="w-full mt-4 bg-gradient-to-r from-pink-500 to-red-500 text-white py-3 rounded-xl font-medium hover:from-pink-600 hover:to-red-600 transition-all"
+            onClick={handlePlanThisDate}
+          >
             Plan This Date
           </button>
         </Link>
+        {errorMsg && (
+          <div className="mt-3 text-red-600 text-sm text-center" role="alert">
+            {errorMsg}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -524,7 +554,7 @@ export default function Page() {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
         {dateIdeas.filter(Boolean).map((idea, idx) => (
-          <DateCard key={idea?.id ?? idx} idea={idea as DateIdea} />
+          <DateCard key={idea?.id ?? idx} idea={idea as DateIdea} filters={formState} />
         ))}
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-10">

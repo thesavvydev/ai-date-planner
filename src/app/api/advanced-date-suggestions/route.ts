@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     prompt: `Generate date ideas based on the user's answers to a questionnaire. Make it the most amazing date possible.`,
     system: `You are a helpful AI assistant that helps users plan a date to locations near them. 
     Use a 10 mile radius around the specified location. 
-    Generate at least 5 unique date ideas per category. Dates must be unique and not repeat the same idea! Dates should be real and not made up.
+    Generate 6 date ideas. Dates must be unique and not repeat the same idea! Dates should be real and not made up.
     The user has provided the following answers to a questionnaire: ${userAnswers}`,
     output: "array",
     schema: dateIdeaSchema,
