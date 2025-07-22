@@ -6,6 +6,20 @@ import { DATE_CATEGORIES } from "@/schema/dateIdea";
 import { ArrowLeft, Calendar, Car, Clock, DollarSign, ExternalLink, MapPin, Phone, Star, Umbrella, Users } from "lucide-react";
 import Link from "next/link";
 
+// For type safety, define types for the mapped arrays
+interface SuggestedLocation {
+  name: string;
+  address: string;
+  description: string;
+  website?: string;
+  phone?: string;
+}
+interface Alternative {
+  title: string;
+  description: string;
+  why: string;
+}
+
 export default async function DateIdeaPage({ 
   params
 }: { 
@@ -103,7 +117,7 @@ export default async function DateIdeaPage({
               
               <h4 className="font-semibold text-gray-800 mb-3">Suggested Venues</h4>
               <div className="space-y-4">
-                {data.date_idea.suggestedLocations.map((location, index) => (
+                {(data.date_idea.suggestedLocations as SuggestedLocation[]).map((location: SuggestedLocation, index: number) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-4">
                     <h5 className="font-medium text-gray-800 mb-2">{location.name}</h5>
                     <p className="text-gray-600 text-sm mb-2">{location.address}</p>
@@ -141,7 +155,7 @@ export default async function DateIdeaPage({
               <div>
                 <h4 className="font-semibold text-gray-800 mb-3">What to Bring</h4>
                 <div className="flex flex-wrap gap-2">
-                  {data.date_idea.whatToBring.map((item, index) => (
+                  {(data.date_idea.whatToBring as string[]).map((item: string, index: number) => (
                     <Badge key={index} variant="secondary" className="text-sm">
                       {item}
                     </Badge>
@@ -168,7 +182,7 @@ export default async function DateIdeaPage({
             </CardHeader>
             <CardContent>
               <ul className="space-y-3">
-                {data.date_idea.tips.map((tip, index) => (
+                {(data.date_idea.tips as string[]).map((tip: string, index: number) => (
                   <li key={index} className="flex items-start gap-3">
                     <div className="w-2 h-2 bg-pink-500 rounded-full mt-2 flex-shrink-0"></div>
                     <span className="text-gray-700">{tip}</span>
@@ -185,7 +199,7 @@ export default async function DateIdeaPage({
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {data.date_idea.alternatives.map((alt, index) => (
+                {(data.date_idea.alternatives as Alternative[]).map((alt: Alternative, index: number) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-4">
                     <h5 className="font-medium text-gray-800 mb-2">{alt.title}</h5>
                     <p className="text-gray-700 mb-2">{alt.description}</p>
