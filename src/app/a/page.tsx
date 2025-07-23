@@ -9,8 +9,11 @@ import { DATE_CATEGORIES, DateIdea, dateIdeaSchema } from "@/schema/dateIdea";
 import { experimental_useObject } from "@ai-sdk/react";
 import { clsx } from "clsx"; // Added missing import
 import { Bookmark, ChevronLeft, ChevronRight, Clock, MapPin, RotateCcw, Share2, Star, X } from "lucide-react";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react"; // Added missing import
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react"; // Added missing import
 import z from "zod";
+import { createClient } from "@/lib/supabase/client";
+import type { TablesInsert } from "@/types/supabase";
+import { useRouter } from "next/navigation";
 
 const STEPS = [
   QUESTIONS_DICTIONARY.location,
@@ -90,11 +93,16 @@ function OptionCard({ selected, icon, label, onClick }: { selected: boolean; ico
   );
 }
 
-function InfluencerDateStory({ idea, onPlan, onShare, onSave }: {
+/**
+ * Renders a single date idea with action buttons.
+ */
+function InfluencerDateStory({ idea, onPlan, onShare, onSave, errorMsg, planLoading }: {
   idea: DateIdea,
   onPlan: () => void,
   onShare: () => void,
   onSave: () => void,
+  errorMsg?: string | null,
+  planLoading?: boolean,
 }) {
   return (
     <section className="flex flex-col items-center justify-center w-full px-4 py-8 sm:py-12" aria-label={`Date idea: ${idea.title}`}> 
@@ -112,8 +120,17 @@ function InfluencerDateStory({ idea, onPlan, onShare, onSave }: {
           <span className="flex items-center gap-1"><Clock className="w-4 h-4" aria-hidden="true" />{idea.duration}</span>
         </div>
         <div className="flex gap-2 w-full justify-center mt-2 flex-wrap">
-          <Button className="bg-gradient-to-r from-pink-600 to-red-500 text-white font-bold px-4 py-3 rounded-full text-base hover:from-pink-700 hover:to-red-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500" onClick={onPlan} aria-label="Plan this date">
-            Plan Date
+          <Button
+            className="bg-gradient-to-r from-pink-600 to-red-500 text-white font-bold px-4 py-3 rounded-full text-base hover:from-pink-700 hover:to-red-600 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
+            onClick={onPlan}
+            aria-label="Plan this date"
+            disabled={planLoading}
+          >
+            {planLoading ? (
+              <span className="flex items-center gap-2"><span className="animate-spin inline-block w-5 h-5 border-2 border-white border-t-pink-200 rounded-full" /> Planning...</span>
+            ) : (
+              "Plan Date"
+            )}
           </Button>
           <Button variant="outline" className="rounded-full px-4 py-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500" onClick={onShare} aria-label="Share this date idea">
             <Share2 className="w-5 h-5 mr-1" aria-hidden="true" /> <span className="sr-only">Share</span>
@@ -122,6 +139,11 @@ function InfluencerDateStory({ idea, onPlan, onShare, onSave }: {
             <Bookmark className="w-5 h-5 mr-1" aria-hidden="true" /> <span className="sr-only">Save</span>
           </Button>
         </div>
+        {errorMsg && (
+          <div className="mt-3 text-red-600 text-sm text-center" role="alert">
+            {errorMsg}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -192,6 +214,9 @@ export default function InfluencerPage() {
   const [showResults, setShowResults] = useState(false);
   const [carouselIdx, setCarouselIdx] = useState(0);
   const [shareIdea, setShareIdea] = useState<DateIdea | null>(null);
+  const router = useRouter();
+  const [planError, setPlanError] = useState<string | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
 
   const {
     object: dateIdeas = [],
@@ -237,11 +262,34 @@ export default function InfluencerPage() {
       }
     });
   }
-  function handlePlan(idea: DateIdea) {
-    // For demo: just copy to clipboard
-    navigator.clipboard.writeText(`${idea.title} - ${idea.description}`);
-    alert("Date planned! (Demo)");
-  }
+
+  /**
+   * Handles planning a date: inserts into Supabase and routes to the new page.
+   */
+  const handlePlan = useCallback(async (idea: DateIdea) => {
+    setPlanError(null);
+    setPlanLoading(true);
+    try {
+      const supabase = createClient();
+      const insertData: TablesInsert<"date_ideas"> = {
+        date_idea: idea,
+        date_filters: answers,
+      };
+      const { data, error } = await supabase.from("date_ideas").insert([insertData]).select();
+      if (error) {
+        setPlanError("Failed to save date idea: " + error.message);
+      } else if (data && data[0]?.id) {
+        router.push(`/date-idea/${data[0].id}`);
+      } else {
+        setPlanError("Date idea saved, but could not get new id.");
+      }
+    } catch (err) {
+      setPlanError("Unexpected error. Please try again.");
+    } finally {
+      setPlanLoading(false);
+    }
+  }, [answers, router]);
+
   function handleShare(idea: DateIdea) {
     setShareIdea(idea);
     navigator.clipboard.writeText(`${idea.title} - ${idea.description}`);
@@ -453,6 +501,8 @@ export default function InfluencerPage() {
                     onPlan={() => handlePlan(currentIdea)}
                     onShare={() => handleShare(currentIdea)}
                     onSave={() => handleSave(currentIdea)}
+                    errorMsg={planError}
+                    planLoading={planLoading}
                   />
                 )}
               </div>
@@ -492,7 +542,7 @@ export default function InfluencerPage() {
               type="button"
               variant="outline"
               onClick={() => setCarouselIdx(i => Math.max(0, i - 1))}
-              disabled={carouselIdx === 0}
+              disabled={carouselIdx === 0 || ideas.length === 0}
               className="rounded-full px-6 py-2"
               aria-label="Previous date idea"
             >
@@ -502,6 +552,7 @@ export default function InfluencerPage() {
               type="button"
               variant="outline"
               onClick={() => setShowResults(false)}
+              disabled={ideas.length === 0}
               className="rounded-full px-6 py-2"
               aria-label="Start Over"
             >
@@ -511,7 +562,7 @@ export default function InfluencerPage() {
               type="button"
               variant="outline"
               onClick={() => setCarouselIdx(i => Math.min(ideas.length - 1, i + 1))}
-              disabled={carouselIdx === ideas.length - 1}
+              disabled={carouselIdx === ideas.length - 1 || ideas.length === 0}
               className="rounded-full px-6 py-2"
               aria-label="Next date idea"
             >
