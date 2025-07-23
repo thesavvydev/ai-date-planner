@@ -2,7 +2,7 @@ import { dateIdeaSchema } from "@/schema/dateIdea";
 import { openai } from "@ai-sdk/openai";
 import { streamObject } from "ai";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
 
