@@ -1,3 +1,5 @@
+> **Note:** This app was partially built with [Cursor](https://www.cursor.so/) and AI-assisted code generation. While much of the code was written and reviewed by humans, AI tools were used throughout the development process to accelerate building an accessible, production-grade web application.
+
 # 💖 Date Night AI Planner
 
 A fun, interactive, and accessible AI-powered date night planner.
